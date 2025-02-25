@@ -24,3 +24,4 @@ dist-ssr
 *.sw?
 *.gitignore
 __pycache__
+yolo_model.pth
