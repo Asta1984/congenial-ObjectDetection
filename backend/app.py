@@ -44,50 +44,56 @@ request_times = []
 
 def predict(image):
     """Runs YOLO model on input frame"""
-    # Get image dimensions before resizing for scaling back bounding boxes
-    orig_height, orig_width = image.shape[:2]
+    orig_height, orig_width = image.shape[:2]  # Get original frame size
     
-    # Transform image
-    img_tensor = transform(image).unsqueeze(0)  # Add batch dimension
+    # 🔹 Transform input image (resize & normalize)
+    img_tensor = transform(image).unsqueeze(0)  # Convert to tensor
     
-    # Run model
+    # 🔹 Run YOLO model
     start_time = time.time()
     with torch.no_grad():
         output = model(img_tensor)
     inference_time = time.time() - start_time
     
-    # Convert to bounding boxes
+    # 🔹 Convert model output to bounding boxes
     bboxes = cellboxes_to_boxes(output)
     results = []
-    
+
     for box in bboxes[0]:
-        class_idx, conf, x, y, w, h = box
-        
-        if conf > CONFIDENCE_THRESHOLD:  # Using lower confidence threshold
-            # Scale bounding box coordinates back to original image size
-            x_scaled = x * orig_width / 448
-            y_scaled = y * orig_height / 448
-            w_scaled = w * orig_width / 448
-            h_scaled = h * orig_height / 448
-            
-            # Get class name
+        class_idx, conf, x, y, w, h = box  # YOLO outputs (normalized)
+
+        if conf > CONFIDENCE_THRESHOLD:
+            # 🔹 Convert to top-left corner format
+            x_min = int((x - w / 2) * orig_width)  # Scale to image size
+            y_min = int((y - h / 2) * orig_height)
+            w_scaled = int(w * orig_width)
+            h_scaled = int(h * orig_height)
+
+            # 🔹 Ensure bounding box is within valid image dimensions
+            x_min = max(0, min(x_min, orig_width - 1))
+            y_min = max(0, min(y_min, orig_height - 1))
+            w_scaled = max(1, min(w_scaled, orig_width - x_min))
+            h_scaled = max(1, min(h_scaled, orig_height - y_min))
+
+            # 🔹 Get class name
             class_name = CLASSES[int(class_idx)] if int(class_idx) < len(CLASSES) else f"class_{int(class_idx)}"
-            
+
             results.append({
-                "class": class_name,  # Return class name instead of just index
+                "class": class_name,
                 "class_id": int(class_idx),
                 "conf": float(conf),
-                "x": float(x_scaled),
-                "y": float(y_scaled),
-                "w": float(w_scaled),
-                "h": float(h_scaled)
+                "x": x_min,
+                "y": y_min,
+                "w": w_scaled,
+                "h": h_scaled
             })
-    
+
     print(f"Inference time: {inference_time:.3f}s, Found {len(results)} objects with conf > {CONFIDENCE_THRESHOLD}")
     if results:
         print(f"Top detection: {results[0]['class']} with confidence {results[0]['conf']:.2f}")
-    
+
     return results, inference_time
+
 
 @app.route("/predict", methods=["POST"])
 def predict_video():
