@@ -35,7 +35,7 @@ CLASSES = [
 ]
 
 # Lowered confidence threshold
-CONFIDENCE_THRESHOLD = 0.2  # Lowered from 0.5 to detect more objects
+CONFIDENCE_THRESHOLD = 0.7  
 
 # Track request performance
 total_requests = 0
