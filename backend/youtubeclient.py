@@ -7,8 +7,8 @@ import json
 import random
 
 # YouTube video URL - you can easily change this
-YOUTUBE_URL = "https://youtu.be/5YuQQwLGTxA?si=QPHdDJ_knAkUfVUb"
-#YOUTUBE_URL = "https://www.youtube.com/watch?v=1EiC9bvVGnk"  # Street scene with cars/people
+#YOUTUBE_URL = "https://youtu.be/5YuQQwLGTxA?si=QPHdDJ_knAkUfVUb"
+YOUTUBE_URL = "https://www.youtube.com/watch?v=1EiC9bvVGnk"  # Street scene with cars/people
 
 # Colors for different classes (to make visualization better)
 COLORS = {
